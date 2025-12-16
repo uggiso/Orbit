@@ -1,0 +1,18 @@
+# General Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Environment Variables (IMPORTANT: Protects your API Key)
+.env
+
+# MacOS junk
+.DS_Store
+
+# Vector Database (Local)
+chroma_db/
