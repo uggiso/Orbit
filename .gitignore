@@ -15,4 +15,4 @@ env/
 .DS_Store
 
 # Vector Database (Local)
-chroma_db/
+#chroma_db/

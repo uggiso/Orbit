@@ -4,7 +4,7 @@ try:
     import sys
     sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 except ImportError:
-    pass  # Pass silently if running locally on Windows
+    pass
 # ---------------------------------------------------------
 
 import streamlit as st
@@ -31,98 +31,92 @@ st.caption("The CollabCircle Research Assistant")
 # 4. Initialize the 'Brain' (Session State)
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "vector_store" not in st.session_state:
+
+# --- CRITICAL CHANGE: Load the Persistent Brain ---
+# We check if the database already exists. If yes, we load it!
+embedding_function = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+persist_directory = "./chroma_db"
+
+if os.path.exists(persist_directory) and os.path.isdir(persist_directory):
+    st.session_state.vector_store = Chroma(
+        persist_directory=persist_directory, 
+        embedding_function=embedding_function
+    )
+else:
     st.session_state.vector_store = None
 
-# --- SIDEBAR: Document Ingestion ---
+# --- SIDEBAR: Admin Mode ---
 with st.sidebar:
-    st.header("1. Upload Documents")
-    uploaded_files = st.file_uploader("Upload PDF Research Papers", type="pdf", accept_multiple_files=True)
+    st.header("⚙️ Knowledge Base")
+    st.info("Orbit is running on pre-loaded CollabCircle data.")
     
-    if st.button("Process Documents"):
-        if uploaded_files:
-            with st.spinner("Digesting documents..."):
-                all_splits = []
-                
-                # A. Read each PDF
-                for uploaded_file in uploaded_files:
-                    # Save temp file because PyPDFLoader needs a real file path
-                    with open(uploaded_file.name, "wb") as f:
-                        f.write(uploaded_file.getbuffer())
-                    
-                    loader = PyPDFLoader(uploaded_file.name)
-                    docs = loader.load()
-                    
-                    # B. Split text into chunks
-                    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-                    splits = text_splitter.split_documents(docs)
-                    all_splits.extend(splits)
-                    
-                    # Cleanup temp file
-                    os.remove(uploaded_file.name)
+    # Optional: Keep this hidden or password protected in future
+    with st.expander("Update Knowledge (Admin Only)"):
+        uploaded_files = st.file_uploader("Upload New Research", type="pdf", accept_multiple_files=True)
+        if st.button("Process & Update"):
+            if uploaded_files:
+                with st.spinner("Updating Brain..."):
+                    all_splits = []
+                    for uploaded_file in uploaded_files:
+                        with open(uploaded_file.name, "wb") as f:
+                            f.write(uploaded_file.getbuffer())
+                        loader = PyPDFLoader(uploaded_file.name)
+                        docs = loader.load()
+                        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+                        splits = text_splitter.split_documents(docs)
+                        all_splits.extend(splits)
+                        os.remove(uploaded_file.name)
 
-                # C. Store in Vector Database (Chroma) using LOCAL Embeddings
-                # This runs on your laptop (CPU) AND Cloud, free with no rate limits!
-                st.session_state.vector_store = Chroma.from_documents(
-                    documents=all_splits,
-                    embedding=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2"),
-                    persist_directory="./chroma_db"
-                )
-                
-                st.success("Knowledge Base Updated! You can now chat.")
-        else:
-            st.warning("Please upload a PDF first.")
+                    # Update the persistent DB
+                    st.session_state.vector_store = Chroma.from_documents(
+                        documents=all_splits,
+                        embedding=embedding_function,
+                        persist_directory=persist_directory
+                    )
+                    st.success("Knowledge Base Updated!")
 
 # --- MAIN: Chat Interface ---
 
-# 5. Display Chat History
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 6. Handle User Input
-if prompt := st.chat_input("Ask a question about CollabCircle research..."):
-    # Show user message
+if prompt := st.chat_input("Ask Orbit..."):
     st.chat_message("user").markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # Generate Answer
     if st.session_state.vector_store:
         try:
-            # A. Create the Retriever
             retriever = st.session_state.vector_store.as_retriever()
             
-            # B. Define the System Prompt (The Rules)
+            # --- CRITICAL CHANGE: Identity & Persona ---
             system_prompt = (
-                "You are an assistant for CollabCircle. "
+                "You are Orbit, the AI assistant for CollabCircle. "
+                "Your tone is helpful, professional, and encouraging. "
+                "Always start your very first interaction with: 'Hi, I'm Orbit! The AI assistant for CollabCircle. How may I help you?' "
+                "For subsequent questions, answer directly based on the context. "
                 "Use the following pieces of retrieved context to answer the question. "
-                "If you don't know the answer, say that you don't know. "
+                "If you don't know the answer, say that you don't know based on the available documents. "
                 "Context: {context}"
             )
+            
             prompt_template = ChatPromptTemplate.from_messages([
                 ("system", system_prompt),
                 ("human", "{input}"),
             ])
 
-            # C. Define the LLM (Gemini Flash)
-            # Using the stable Flash alias for best free-tier availability
             llm = ChatGoogleGenerativeAI(model="gemini-flash-latest", temperature=0.3)
-            
-            # D. Create the Chain (The Pipeline)
             question_answer_chain = create_stuff_documents_chain(llm, prompt_template)
             rag_chain = create_retrieval_chain(retriever, question_answer_chain)
 
-            # E. Run the Chain
             with st.spinner("Thinking..."):
                 response = rag_chain.invoke({"input": prompt})
                 answer = response["answer"]
 
-            # Show AI message
             st.chat_message("assistant").markdown(answer)
             st.session_state.messages.append({"role": "assistant", "content": answer})
 
         except Exception as e:
             st.error(f"Error: {e}")
     else:
-        # Fallback if no docs are uploaded
-        st.warning("Please upload and process documents in the sidebar first!")
+        st.warning("Orbit's brain is missing! Please upload documents in the sidebar.")
