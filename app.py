@@ -90,9 +90,9 @@ with st.sidebar:
             <p>Developed by <b>Shah Mohammad Rizvi</b></p>
             <p>&copy; 2025 CollabCircle</p>
             <p>
-                <a href="https://linkedin.com/company/collabcircle" target="_blank">LinkedIn</a> | 
-                <a href="https://github.com/collabcircle" target="_blank">GitHub</a> | 
-                <a href="https://collabcircle.org" target="_blank">Website</a>
+                <a href="https://www.linkedin.com/company/collabcircle-official/" target="_blank">LinkedIn</a> | 
+                <a href="https://www.facebook.com/collabcircle.official/" target="_blank">Facebook</a> | 
+                <a href="https://www.youtube.com/@collabcircle.official" target="_blank">YouTube</a>
             </p>
         </div>
     """, unsafe_allow_html=True)
