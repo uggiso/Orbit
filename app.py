@@ -40,8 +40,8 @@ with st.sidebar:
     col1, col2, col3 = st.columns([1, 2, 1]) 
     with col2:
         # Check if file exists to prevent errors
-        if os.path.exists("assets/logo.jpeg"):
-            st.image("assets/logo.jpeg", width=100)
+        if os.path.exists("assets/logo.png"):
+            st.image("assets/logo.png", width=100)
         else:
             st.warning("Logo not found")
             
